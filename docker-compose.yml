@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  nginx:    
+    build: ./nginx/  
+    container_name: nginx-container  
+    ports:  
+      - 8001:80  
+    links:  
+      - php  
+    volumes_from:  
+      - app-data  
+
+  php:    
+    build: ./php/  
+    container_name: php-container  
+    expose:  
+      - 9000  
+    links:  
+      - mysql  
+    volumes_from:  
+      - app-data  
+
+  app-data:    
+    image: php:7.3-fpm  
+    container_name: app-data-container  
+    volumes:  
+      - ../kyxweb/:/var/www/html/  
+    command: "true"
+
+  mysql:    
+    image: mysql:5.7  
+    container_name: mysql-container
+    volumes_from:  
+      - mysql-data  
+    environment:  
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: kyx  
+      MYSQL_USER: secret  
+      MYSQL_PASSWORD: secret
+
+  mysql-data:    
+    image: mysql:5.7  
+    container_name: mysql-data-container  
+    volumes:  
+      - /var/lib/mysql  
+    command: "true" 
