@@ -12,7 +12,7 @@ services:
       - app-data  
 
   php:    
-    build: ./php/  
+    build: ./php/
     container_name: php-container  
     expose:  
       - 9000  
@@ -20,9 +20,9 @@ services:
       - mysql
     working_dir: /var/www/html/
     command: >
-      sh -c "ls -al &&
+      sh -c "ls &&
              composer install &&
-             php artisan queue:listen > ./storage/log/container/queue.log"
+             php artisan queue:listen"
     volumes_from:  
       - app-data  
 
@@ -37,7 +37,7 @@ services:
   #     - app-data  
 
   app-data:    
-    image: php:7.4 
+    image: php:7.3
     container_name: app-data-container  
     volumes:  
       - ./www/html/:/var/www/html/  
