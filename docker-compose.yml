@@ -89,3 +89,15 @@ services:
     ports:
       - "8003:1025"
       - "8100:8025" # http://127.0.0.1:8100/
+
+  ngrok:
+    image: shkoliar/ngrok:latest
+    container_name: ngrok-container
+    ports:
+      - 4551:4551 # http://127.0.0.1:4551
+    links:
+      - nginx
+    environment:
+      - DOMAIN=nginx
+      - PORT=80
+      - AUTH_TOKEN=256c916GK48qaOTmzd0tWdXe0lj_2ArUz1vj4P54gjq3yUe5j
