@@ -40,6 +40,7 @@ services:
     working_dir: /var/www/html/
     command: >
       sh -c "composer install && 
+             php artisan config:clear && php artisan cache:clear &&
              php artisan queue:listen > /var/www/html/storage/logs/queue.log"
     volumes_from:  
       - app-data
@@ -66,6 +67,8 @@ services:
     container_name: mysql-container
     volumes_from:
       - mysql-data
+    ports:
+      - 3307:3306
     environment:  
       MYSQL_ROOT_PASSWORD: secret
       MYSQL_DATABASE: kyx  
@@ -79,3 +82,10 @@ services:
       - /var/lib/mysql
       - ./mysql/dump.sql:/docker-entrypoint-initdb.d/dump.sql
     command: "true"
+
+  mailhog: # https://aregsar.com/blog/2020/laravel-app-with-mail-server-in-docker/
+    image: mailhog/mailhog:latest
+    container_name: mailhog-container
+    ports:
+      - "8003:1025"
+      - "8100:8025" # http://127.0.0.1:8100/
