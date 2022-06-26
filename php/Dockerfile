@@ -1,4 +1,7 @@
-FROM php:7.3
+FROM php:7.3-fpm
+
+ARG user
+ARG uid
 
 RUN apt-get update && apt-get install -y \
     git \
@@ -28,3 +31,15 @@ RUN php -r "if (hash_file('sha384', 'composer-setup.php') === '55ce33d7678c5a611
 RUN php composer-setup.php
 RUN php -r "unlink('composer-setup.php');"
 RUN mv composer.phar /usr/local/bin/composer
+
+# ADD . /var/www
+# RUN chown -R www-data:www-data /var/www
+# RUN chmod -R 777 /var/www/html/storage
+
+RUN useradd -G www-data,root -u $uid -d /home/$user $user
+RUN mkdir -p /home/$user/.composer && \
+    chown -R $user:$user /home/$user && \
+    chown -R $user:$user /var/www 
+
+# Set the user
+USER $user

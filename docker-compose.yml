@@ -12,19 +12,37 @@ services:
       - app-data  
 
   php:    
-    build: ./php/
+    build:
+      context: ./php/
+      args:
+        user: hanif # your username (echo $USER)
+        uid: 1000 # your uid (id -u)
     container_name: php-container  
     expose:  
       - 9000  
     links:  
       - mysql
     working_dir: /var/www/html/
+    volumes_from:  
+      - app-data 
+
+  util:    
+    build:
+      context: ./php/
+      args:
+        user: hanif # your username (echo $USER)
+        uid: 1000 # your uid (id -u)
+    container_name: util-container  
+    expose:  
+      - 9000  
+    links:  
+      - mysql
+    working_dir: /var/www/html/
     command: >
-      sh -c "ls &&
-             composer install &&
+      sh -c "composer install && 
              php artisan queue:listen"
     volumes_from:  
-      - app-data  
+      - app-data
 
   # node:    
   #   image: node:14.19.3-alpine3.16
@@ -37,7 +55,7 @@ services:
   #     - app-data  
 
   app-data:    
-    image: php:7.3
+    image: php:7.3-fpm
     container_name: app-data-container  
     volumes:  
       - ./www/html/:/var/www/html/  
