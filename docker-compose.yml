@@ -5,7 +5,7 @@ services:
     build: ./nginx/  
     container_name: nginx-container  
     ports:  
-      - 8001:80  
+      - 8000:80  
     links:  
       - php  
     volumes_from:  
@@ -44,15 +44,15 @@ services:
     volumes_from:  
       - app-data
 
-  # node:    
-  #   image: node:14.19.3-alpine3.16
-  #   container_name: node-container
-  #   command: >
-  #     sh -c "npm install &&
-  #            npm run watch"
-  #   working_dir: /var/www/html
-  #   volumes_from:  
-  #     - app-data  
+  node:    
+    image: node:14.19.3-alpine3.16
+    container_name: node-container
+    command: >
+      sh -c "npm install &&
+             npm run watch"
+    working_dir: /var/www/html
+    volumes_from:  
+      - app-data  
 
   app-data:    
     image: php:7.3-fpm
@@ -64,8 +64,8 @@ services:
   mysql:    
     image: mysql:5.7  
     container_name: mysql-container
-    volumes_from:  
-      - mysql-data  
+    volumes_from:
+      - mysql-data
     environment:  
       MYSQL_ROOT_PASSWORD: secret
       MYSQL_DATABASE: kyx  
@@ -76,5 +76,6 @@ services:
     image: mysql:5.7  
     container_name: mysql-data-container  
     volumes:  
-      - /var/lib/mysql  
+      - /var/lib/mysql
+      - ./mysql/dump.sql:/docker-entrypoint-initdb.d/dump.sql
     command: "true"
