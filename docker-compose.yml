@@ -17,15 +17,30 @@ services:
     expose:  
       - 9000  
     links:  
-      - mysql  
+      - mysql
+    working_dir: /var/www/html/
+    command: >
+      sh -c "ls -al &&
+             composer install &&
+             php artisan queue:listen > ./storage/log/container/queue.log"
     volumes_from:  
       - app-data  
 
+  # node:    
+  #   image: node:14.19.3-alpine3.16
+  #   container_name: node-container
+  #   command: >
+  #     sh -c "npm install &&
+  #            npm run watch"
+  #   working_dir: /var/www/html
+  #   volumes_from:  
+  #     - app-data  
+
   app-data:    
-    image: php:7.3-fpm  
+    image: php:7.4 
     container_name: app-data-container  
     volumes:  
-      - ../kyxweb/:/var/www/html/  
+      - ./www/html/:/var/www/html/  
     command: "true"
 
   mysql:    
@@ -44,4 +59,4 @@ services:
     container_name: mysql-data-container  
     volumes:  
       - /var/lib/mysql  
-    command: "true" 
+    command: "true"
