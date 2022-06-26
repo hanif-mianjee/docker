@@ -40,7 +40,7 @@ services:
     working_dir: /var/www/html/
     command: >
       sh -c "composer install && 
-             php artisan queue:listen"
+             php artisan queue:listen > /var/www/html/storage/logs/queue.log"
     volumes_from:  
       - app-data
 
