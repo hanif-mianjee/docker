@@ -3,13 +3,16 @@ version: "3"
 services:
   nginx:    
     build: ./nginx/  
-    container_name: nginx-container  
+    container_name: nginx-container
+    restart: always
     ports:  
       - ${HOST_PORT}:80  
     links:  
       - php  
     volumes_from:  
-      - app-data  
+      - app-data
+    depends_on:
+      - php
 
   php:    
     build:
@@ -18,14 +21,17 @@ services:
         user: ${HOST_USER} # your username (echo $USER)
         uid: ${HOST_UID} # your uid (id -u)
         php_version: ${PHP_VERSION}
-    container_name: php-container  
+    container_name: php-container
+    restart: always
     expose:  
       - 9000  
     links:  
       - mysql
     working_dir: /var/www/html/
     volumes_from:  
-      - app-data 
+      - app-data
+    depends_on:
+      - app-data
 
   util:    
     build:
@@ -34,7 +40,8 @@ services:
         user: ${HOST_USER} # your username (echo $USER)
         uid: ${HOST_UID} # your uid (id -u)
         php_version: ${PHP_VERSION}
-    container_name: util-container  
+    container_name: util-container
+    restart: always
     expose:  
       - 9000  
     links:  
@@ -46,27 +53,36 @@ services:
              php artisan queue:listen > /var/www/html/storage/logs/queue.log"
     volumes_from:  
       - app-data
+    depends_on:
+      - app-data
 
   node:    
     image: node:${NODE_VERSION}
     container_name: node-container
+    restart: always
     command: >
       sh -c "npm install &&
              npm run watch"
     working_dir: /var/www/html
     volumes_from:  
-      - app-data  
+      - app-data
+    depends_on:
+      - app-data
 
   app-data:    
     image: php:${PHP_VERSION}
-    container_name: app-data-container  
+    container_name: app-data-container
+    restart: always
     volumes:  
       - ${WORK_DIR}:/var/www/html/  
     command: "true"
+    depends_on:
+      - mysql
 
   mysql:    
     image: mysql:${MYSQL_VERSION}  
     container_name: mysql-container
+    restart: always
     volumes_from:
       - mysql-data
     ports:
@@ -76,10 +92,13 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}  
       MYSQL_USER: ${MYSQL_USER}  
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - mysql-data
 
   mysql-data:    
     image: mysql:${MYSQL_VERSION}  
     container_name: mysql-data-container  
+    restart: always
     volumes:  
       - /var/lib/mysql
       - ${SQL_DUMP_DIR}:/docker-entrypoint-initdb.d/dump.sql
@@ -88,6 +107,7 @@ services:
   mailhog: # https://aregsar.com/blog/2020/laravel-app-with-mail-server-in-docker/
     image: mailhog/mailhog:latest
     container_name: mailhog-container
+    restart: always
     ports:
       - "8003:1025"
       - ${MAILHOG_PORT}:8025 # http://127.0.0.1:8100/
@@ -95,6 +115,7 @@ services:
   ngrok:
     image: shkoliar/ngrok:latest
     container_name: ngrok-container
+    restart: always
     ports:
       - ${NGROK_PORT}:4551 # http://127.0.0.1:4551
     links:
