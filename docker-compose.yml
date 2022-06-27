@@ -5,7 +5,7 @@ services:
     build: ./nginx/  
     container_name: nginx-container  
     ports:  
-      - 8000:80  
+      - ${HOST_PORT}:80  
     links:  
       - php  
     volumes_from:  
@@ -15,8 +15,9 @@ services:
     build:
       context: ./php/
       args:
-        user: hanif # your username (echo $USER)
-        uid: 1000 # your uid (id -u)
+        user: ${HOST_USER} # your username (echo $USER)
+        uid: ${HOST_UID} # your uid (id -u)
+        php_version: ${PHP_VERSION}
     container_name: php-container  
     expose:  
       - 9000  
@@ -30,8 +31,9 @@ services:
     build:
       context: ./php/
       args:
-        user: hanif # your username (echo $USER)
-        uid: 1000 # your uid (id -u)
+        user: ${HOST_USER} # your username (echo $USER)
+        uid: ${HOST_UID} # your uid (id -u)
+        php_version: ${PHP_VERSION}
     container_name: util-container  
     expose:  
       - 9000  
@@ -46,7 +48,7 @@ services:
       - app-data
 
   node:    
-    image: node:14.19.3-alpine3.16
+    image: node:${NODE_VERSION}
     container_name: node-container
     command: >
       sh -c "npm install &&
@@ -56,31 +58,31 @@ services:
       - app-data  
 
   app-data:    
-    image: php:7.3-fpm
+    image: php:${PHP_VERSION}
     container_name: app-data-container  
     volumes:  
-      - ./www/html/:/var/www/html/  
+      - ${WORK_DIR}:/var/www/html/  
     command: "true"
 
   mysql:    
-    image: mysql:5.7  
+    image: mysql:${MYSQL_VERSION}  
     container_name: mysql-container
     volumes_from:
       - mysql-data
     ports:
-      - 3307:3306
+      - ${MYSQL_PORT}:3306
     environment:  
-      MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: kyx  
-      MYSQL_USER: secret  
-      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}  
+      MYSQL_USER: ${MYSQL_USER}  
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
   mysql-data:    
-    image: mysql:5.7  
+    image: mysql:${MYSQL_VERSION}  
     container_name: mysql-data-container  
     volumes:  
       - /var/lib/mysql
-      - ./mysql/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+      - ${SQL_DUMP_DIR}:/docker-entrypoint-initdb.d/dump.sql
     command: "true"
 
   mailhog: # https://aregsar.com/blog/2020/laravel-app-with-mail-server-in-docker/
@@ -88,16 +90,16 @@ services:
     container_name: mailhog-container
     ports:
       - "8003:1025"
-      - "8100:8025" # http://127.0.0.1:8100/
+      - ${MAILHOG_PORT}:8025 # http://127.0.0.1:8100/
 
   ngrok:
     image: shkoliar/ngrok:latest
     container_name: ngrok-container
     ports:
-      - 4551:4551 # http://127.0.0.1:4551
+      - ${NGROK_PORT}:4551 # http://127.0.0.1:4551
     links:
       - nginx
     environment:
       - DOMAIN=nginx
       - PORT=80
-      - AUTH_TOKEN=256c916GK48qaOTmzd0tWdXe0lj_2ArUz1vj4P54gjq3yUe5j
+      - AUTH_TOKEN=${NGROK_AUTH_TOKEN}

@@ -1,7 +1,6 @@
-FROM php:7.3-fpm
+ARG php_version
 
-ARG user
-ARG uid
+FROM php:$php_version
 
 RUN apt-get update && apt-get install -y \
     git \
@@ -35,6 +34,9 @@ RUN mv composer.phar /usr/local/bin/composer
 # ADD . /var/www
 # RUN chown -R www-data:www-data /var/www
 # RUN chmod -R 777 /var/www/html/storage
+
+ARG user
+ARG uid
 
 RUN useradd -G www-data,root -u $uid -d /home/$user $user
 RUN mkdir -p /home/$user/.composer && \
