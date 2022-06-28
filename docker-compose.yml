@@ -31,7 +31,7 @@ services:
     volumes_from:  
       - app-data
     depends_on:
-      - app-data
+      - util
 
   util:    
     build:
@@ -48,20 +48,26 @@ services:
       - mysql
     working_dir: /var/www/html/
     command: >
-      sh -c "composer install && 
-             php artisan config:clear && php artisan cache:clear &&
+      sh -c "composer install && sleep 60 && 
+             php artisan cache:clear &&
+             php artisan event:clear &&
+             php artisan config:clear &&
+             php artisan view:clear &&
+             php artisan route:clear &&
              php artisan queue:listen > /var/www/html/storage/logs/queue.log"
     volumes_from:  
       - app-data
     depends_on:
       - app-data
+      - mysql
 
   node:    
     image: node:${NODE_VERSION}
     container_name: node-container
     restart: always
     command: >
-      sh -c "npm install &&
+      sh -c "echo fs.inotify.max_user_instances=524288 && sysctl -p && 
+             npm install &&
              npm run watch"
     working_dir: /var/www/html
     volumes_from:  
@@ -72,7 +78,6 @@ services:
   app-data:    
     image: php:${PHP_VERSION}
     container_name: app-data-container
-    restart: always
     volumes:  
       - ${WORK_DIR}:/var/www/html/  
     command: "true"
@@ -98,7 +103,6 @@ services:
   mysql-data:    
     image: mysql:${MYSQL_VERSION}  
     container_name: mysql-data-container  
-    restart: always
     volumes:  
       - /var/lib/mysql
       - ${SQL_DUMP_DIR}:/docker-entrypoint-initdb.d/dump.sql
