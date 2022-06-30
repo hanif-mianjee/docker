@@ -1,3 +1,4 @@
-www/html/
+www/*
+volumes/*
 mysql/dump.sql
 .env
