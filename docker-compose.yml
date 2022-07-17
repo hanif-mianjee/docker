@@ -13,6 +13,7 @@ services:
       - app
     depends_on:
       - app
+    profiles: ["app", "full"]
 
   app:    
     build:
@@ -34,6 +35,7 @@ services:
       - ${WORK_DIR}:/var/www/html/
     depends_on:
       - mysql
+    profiles: ["app", "full"]
 
   scheduler:    
     image: app:latest
@@ -48,8 +50,7 @@ services:
       - app
     depends_on:
       - app
-    profiles:
-      - donotstart
+    profiles: ["scheduler", "full"]
   
   queue:    
     image: app:latest
@@ -64,6 +65,7 @@ services:
       - app
     depends_on:
       - app
+    profiles: ["queue", "full"]
 
   composer:    
     image: app:latest
@@ -78,6 +80,7 @@ services:
       - app
     depends_on:
       - app
+    profiles: ["app", "full"]
 
   node:    
     image: node:${NODE_VERSION}
@@ -91,6 +94,7 @@ services:
     working_dir: /var/www/html
     volumes:  
       - ${WORK_DIR}:/var/www/html/
+    profiles: ["app", "full"]
 
   mysql:    
     image: mysql:${MYSQL_VERSION}  
@@ -106,6 +110,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}  
       MYSQL_USER: ${MYSQL_USER}  
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    profiles: ["app", "full"]
   
   #################################################################
   # Run following as root on host machine in order to run SonarQube
@@ -133,8 +138,7 @@ services:
       - sonarqube_logs:/opt/sonarqube/logs
     ports:
       - "${SONAR_PORT}:9000"
-    profiles:
-      - donotstart
+    profiles: [sonarqube]
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:9000"]
         interval: 15s
@@ -150,8 +154,7 @@ services:
     volumes:
       - postgresql:/var/lib/postgresql
       - postgresql_data:/var/lib/postgresql/data
-    profiles:
-      - donotstart
+    profiles: [sonarqube]
 
   sonar_scanner:
     image: sonarsource/sonar-scanner-cli
@@ -174,8 +177,7 @@ services:
     depends_on:
       sonarqube:
         condition: service_healthy
-    profiles:
-      - donotstart
+    profiles: [sonarqube]
 
   mailhog: # https://aregsar.com/blog/2020/laravel-app-with-mail-server-in-docker/
     image: mailhog/mailhog:latest
@@ -189,6 +191,7 @@ services:
     ports:
       - "8003:1025"
       - ${MAILHOG_PORT}:8025 # http://127.0.0.1:8100/
+    profiles: ["mailhog", "full"]
 
   ngrok:
     image: shkoliar/ngrok:latest
@@ -202,6 +205,7 @@ services:
       - DOMAIN=nginx
       - PORT=80
       - AUTH_TOKEN=${NGROK_AUTH_TOKEN}
+    profiles: ["ngrok", "full"]
 
 volumes:
   volume_mailhog:
