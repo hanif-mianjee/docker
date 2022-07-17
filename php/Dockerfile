@@ -38,10 +38,13 @@ RUN mv composer.phar /usr/local/bin/composer
 ARG user
 ARG uid
 
+COPY start.sh /usr/local/bin/start.sh
+
 RUN useradd -G www-data,root -u $uid -d /home/$user $user
 RUN mkdir -p /home/$user/.composer && \
     chown -R $user:$user /home/$user && \
-    chown -R $user:$user /var/www 
+    chown -R $user:$user /var/www && \
+    chmod +x /usr/local/bin/start.sh
 
 # Set the user
 USER $user

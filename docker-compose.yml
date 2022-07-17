@@ -8,59 +8,74 @@ services:
     ports:  
       - ${HOST_PORT}:80  
     links:  
-      - php  
+      - app  
     volumes_from:  
-      - php
+      - app
     depends_on:
-      - php
+      - app
 
-  php:    
+  app:    
     build:
       context: ./php/
       args:
         user: ${HOST_USER} # your username (echo $USER)
         uid: ${HOST_UID} # your uid (id -u)
         php_version: ${PHP_VERSION}
-    container_name: php-container
+    image: app:latest
+    container_name: app-container
+    environment:
+      APP_ENV: ${APP_ENV}
+      CONTAINER_ROLE: app
     restart: always
     expose:  
       - 9000  
-    links:  
-      - mysql
     working_dir: /var/www/html/
-    volumes_from:  
-      - util
-    depends_on:
-      - util
-
-  util:    
-    build:
-      context: ./php/
-      args:
-        user: ${HOST_USER} # your username (echo $USER)
-        uid: ${HOST_UID} # your uid (id -u)
-        php_version: ${PHP_VERSION}
-    container_name: util-container
-    restart: always
-    expose:  
-      - 9000  
-    links:  
-      - mysql
-    working_dir: /var/www/html/
-    command: >
-      sh -c "composer install &&
-             php artisan cache:clear &&
-             php artisan event:clear &&
-             php artisan config:clear &&
-             php artisan view:clear &&
-             php artisan route:clear &&
-             php artisan storage:link &&
-             php artisan queue:listen > /var/www/html/storage/logs/queue.log
-             "
     volumes:  
       - ${WORK_DIR}:/var/www/html/
     depends_on:
       - mysql
+
+  scheduler:    
+    image: app:latest
+    container_name: scheduler-container
+    environment:
+      APP_ENV: ${APP_ENV}
+      CONTAINER_ROLE: scheduler
+    restart: always
+    command: "/usr/local/bin/start.sh"
+    working_dir: /var/www/html/
+    volumes_from:  
+      - app
+    depends_on:
+      - app
+  
+  queue:    
+    image: app:latest
+    container_name: queue-container
+    environment:
+      APP_ENV: ${APP_ENV}
+      CONTAINER_ROLE: queue
+    restart: always
+    command: "/usr/local/bin/start.sh"
+    working_dir: /var/www/html/
+    volumes_from:  
+      - app
+    depends_on:
+      - app
+
+  composer:    
+    image: app:latest
+    container_name: composer-container
+    environment:
+      APP_ENV: ${APP_ENV}
+      CONTAINER_ROLE: composer
+    # restart: always
+    command: "/usr/local/bin/start.sh"
+    working_dir: /var/www/html/
+    volumes_from:  
+      - app
+    depends_on:
+      - app
 
   node:    
     image: node:${NODE_VERSION}
@@ -69,7 +84,8 @@ services:
     command: >
       sh -c "echo fs.inotify.max_user_instances=524288 && sysctl -p && 
              npm install &&
-             npm run watch -s"
+             npm run watch -s
+             "
     working_dir: /var/www/html
     volumes:  
       - ${WORK_DIR}:/var/www/html/
@@ -94,7 +110,7 @@ services:
     container_name: mailhog-container
     environment:
       - MH_STORAGE=maildir
-      - MH_MAILDIR_PATH=maildir
+      - MH_MAILDIR_PATH="/maildir"
     restart: always
     volumes:
       - volume_mailhog:/maildir
