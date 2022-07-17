@@ -27,8 +27,6 @@ services:
       APP_ENV: ${APP_ENV}
       CONTAINER_ROLE: app
     restart: always
-    expose:  
-      - 9000  
     working_dir: /var/www/html/
     extra_hosts:
       - host.docker.internal:host-gateway

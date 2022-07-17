@@ -53,3 +53,5 @@ RUN mkdir -p /home/$user/.composer && \
 
 # Set the user
 USER $user
+
+EXPOSE 9000
