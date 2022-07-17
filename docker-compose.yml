@@ -116,7 +116,8 @@ services:
   # ulimit -u 8192
   #################################################################
   sonarqube:
-    image: sonarqube:community
+    build:
+      context: ./sonarqube/
     container_name: sonarqube-container
     mem_limit: 2G
     mem_reservation: 2G
@@ -134,6 +135,11 @@ services:
       - "${SONAR_PORT}:9000"
     profiles:
       - donotstart
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:9000"]
+        interval: 15s
+        timeout: 10s
+        retries: 5
 
   sonarqube_db:
     image: postgres:12
@@ -166,7 +172,8 @@ services:
       -Dsonar.projectName=${SONAR_PROJECT_NAME} \
       "
     depends_on:
-      - sonarqube
+      sonarqube:
+        condition: service_healthy
     profiles:
       - donotstart
 
