@@ -30,6 +30,8 @@ services:
     expose:  
       - 9000  
     working_dir: /var/www/html/
+    extra_hosts:
+      - host.docker.internal:host-gateway
     volumes:  
       - ${WORK_DIR}:/var/www/html/
     depends_on:
