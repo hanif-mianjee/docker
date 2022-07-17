@@ -48,6 +48,8 @@ services:
       - app
     depends_on:
       - app
+    profiles:
+      - donotstart
   
   queue:    
     image: app:latest
@@ -104,6 +106,69 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}  
       MYSQL_USER: ${MYSQL_USER}  
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  
+  #################################################################
+  # Run following as root on host machine in order to run SonarQube
+  #
+  # sudo sysctl -w vm.max_map_count=524288
+  # sudo sysctl -w fs.file-max=131072
+  # ulimit -n 131072
+  # ulimit -u 8192
+  #################################################################
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube-container
+    mem_limit: 2G
+    mem_reservation: 2G
+    depends_on:
+      - sonarqube_db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube_db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    ports:
+      - "${SONAR_PORT}:9000"
+    profiles:
+      - donotstart
+
+  sonarqube_db:
+    image: postgres:12
+    container_name: sonarqube-db-container
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
+    profiles:
+      - donotstart
+
+  sonar_scanner:
+    image: sonarsource/sonar-scanner-cli
+    container_name: sonar-scanner-container
+    volumes:  
+      - ${WORK_DIR}:/usr/src
+    command: >
+      sh -c "
+      sonar-scanner \
+      -Dsonar.exclusions='${SONAR_EXCLUSIONS}' \
+      -Dsonar.login=${SONAR_LOGIN} \ 
+      -Dsonar.password=${SONAR_PASSWORD} \ 
+      -Dsonar.projectBaseDir=/usr/src \
+      -Dsonar.host.url='http://sonarqube:9000' \
+      -Dsonar.scm.provider=git \
+      -Dsonar.sources=. \
+      -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+      -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+      "
+    depends_on:
+      - sonarqube
+    profiles:
+      - donotstart
 
   mailhog: # https://aregsar.com/blog/2020/laravel-app-with-mail-server-in-docker/
     image: mailhog/mailhog:latest
@@ -134,3 +199,8 @@ services:
 volumes:
   volume_mailhog:
   volume_mysql:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgresql:
+  postgresql_data:
