@@ -119,6 +119,17 @@ services:
   # sudo sysctl -w fs.file-max=131072
   # ulimit -n 131072
   # ulimit -u 8192
+  #
+  # 
+  # Run sonarqube container first and setup project
+  # docker-compose up sonarqube
+  # 
+  # Then run scanner
+  # docker-compose up sonar_scanner
+  #
+  # Or run everything in single line
+  # docker-compose --profile sonarqube up
+  #
   #################################################################
   sonarqube:
     build:
