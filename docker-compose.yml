@@ -127,9 +127,6 @@ services:
   # Then run scanner
   # docker-compose up sonar_scanner
   #
-  # Or run everything in single line
-  # docker-compose --profile sonarqube up
-  #
   #################################################################
   sonarqube:
     build:
@@ -179,7 +176,7 @@ services:
       -Dsonar.login=${SONAR_LOGIN} \ 
       -Dsonar.password=${SONAR_PASSWORD} \ 
       -Dsonar.projectBaseDir=/usr/src \
-      -Dsonar.host.url='http://sonarqube:9000' \
+      -Dsonar.host.url='${SONAR_HOST}:${SONAR_PORT}' \
       -Dsonar.scm.provider=git \
       -Dsonar.sources=. \
       -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
@@ -189,6 +186,7 @@ services:
       sonarqube:
         condition: service_healthy
     profiles: [sonarqube]
+    network_mode: host
 
   mailhog: # https://aregsar.com/blog/2020/laravel-app-with-mail-server-in-docker/
     image: mailhog/mailhog:latest
